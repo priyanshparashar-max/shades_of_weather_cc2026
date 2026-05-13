@@ -1,0 +1,538 @@
+let clouds = [];
+let butterflies = [];
+let sparkles = [];
+let flowers = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  angleMode(DEGREES);
+
+  // Clouds
+  for (let i = 0; i < 5; i++) {
+    clouds.push({
+      x: random(width),
+      y: random(40, 180),
+      size: random(100, 180),
+      speed: random(0.3, 0.7)
+    });
+  }
+
+  // Butterflies
+  for (let i = 0; i < 6; i++) {
+    butterflies.push({
+      x: random(width),
+      y: random(height - 320, height - 120),
+      speed: random(1, 2),
+      offset: random(360)
+    });
+  }
+
+  // Sparkles
+  for (let i = 0; i < 60; i++) {
+    sparkles.push({
+      x: random(width),
+      y: random(height),
+      size: random(1, 3),
+      speed: random(0.2, 0.8)
+    });
+  }
+
+  // Physics flowers
+  for (let i = 0; i < 80; i++) {
+    let x = random(width);
+
+    // Avoid path area
+    if (
+      x > width / 2 - 140 &&
+      x < width - 220
+    ) {
+      continue;
+    }
+
+    flowers.push({
+      x: x,
+      baseY: random(height - 140, height - 20),
+      stemH: random(20, 40),
+      size: random(6, 10),
+      offset: random(360),
+      bend: random(2, 6)
+    });
+  }
+}
+
+function draw() {
+  drawSky();
+  drawSun();
+  drawMountains();
+  drawSparkles();
+  drawGrass();
+  drawFlowers();
+  drawPath();
+  drawClouds();
+  drawButterflies();
+  drawHouse();
+  drawChildren();
+  drawBirds();
+  drawTitle();
+}
+
+function drawSky() {
+  for (let y = 0; y < height; y += 2) {
+    let inter = map(y, 0, height, 0, 1);
+
+    let c = lerpColor(
+      color(255, 190, 170),
+      color(150, 210, 255),
+      inter
+    );
+
+    stroke(c);
+    line(0, y, width, y);
+  }
+
+  noStroke();
+
+  fill(255, 255, 255, 25);
+  ellipse(width / 2, 120, width, 250);
+}
+
+function drawSun() {
+  push();
+
+  translate(150, 120);
+
+  stroke(255, 230, 120, 120);
+
+  for (let a = 0; a < 360; a += 15) {
+    let r = 70 + sin(frameCount * 2 + a) * 5;
+
+    line(
+      cos(a) * 45,
+      sin(a) * 45,
+      cos(a) * r,
+      sin(a) * r
+    );
+  }
+
+  noStroke();
+
+  for (let r = 180; r > 0; r -= 10) {
+    fill(255, 220, 0, 8);
+    circle(0, 0, r);
+  }
+
+  fill(255, 210, 0);
+  circle(0, 0, 80);
+
+  fill(40);
+
+  circle(-10, -5, 5);
+  circle(10, -5, 5);
+
+  noFill();
+
+  stroke(40);
+
+  arc(0, 10, 25, 15, 0, 180);
+
+  pop();
+}
+
+function drawMountains() {
+  noStroke();
+
+  // Back mountains
+  fill(103,91,64);
+
+  beginShape();
+
+  vertex(0, height);
+
+  vertex(0, height - 200);
+  vertex(180, height - 440);
+  vertex(350, height - 240);
+  vertex(600, height - 450);
+  vertex(800, height - 360);
+  vertex(width, height - 540);
+
+  vertex(width, height);
+
+  endShape(CLOSE);
+
+  // Front mountains
+  fill(169,169,169);
+
+  beginShape();
+
+  vertex(0, height);
+
+  vertex(0, height - 150);
+  vertex(340, height - 380);
+  vertex(600, height - 190);
+  vertex(800, height - 420);
+  vertex(width, height - 170);
+
+  vertex(width, height);
+
+  endShape(CLOSE);
+
+  // Snow cap
+  fill(255, 240, 250);
+
+  triangle(
+    670,
+    height - 390,
+    700,
+    height - 420,
+    730,
+    height - 390
+  );
+}
+
+function drawSparkles() {
+  noStroke();
+
+  for (let s of sparkles) {
+    fill(255, 255, 255, 100);
+
+    circle(s.x, s.y, s.size);
+
+    s.y -= s.speed;
+
+    if (s.y < 0) {
+      s.y = height;
+      s.x = random(width);
+    }
+  }
+}
+
+function drawGrass() {
+  noStroke();
+
+  fill(100, 185, 95);
+
+  beginShape();
+
+  vertex(0, height);
+
+  for (let x = 0; x <= width; x += 15) {
+    let y =
+      height - 150 +
+      sin(x * 0.02 + frameCount * 0.4) * 8;
+
+    vertex(x, y);
+  }
+
+  vertex(width, height);
+
+  endShape(CLOSE);
+
+  // Grass blades
+  stroke(70, 150, 70);
+
+  for (let x = 0; x < width; x += 8) {
+    let h = random(8, 20);
+
+    line(
+      x,
+      height - 150,
+      x + sin(frameCount + x) * 2,
+      height - 150 - h
+    );
+  }
+}
+
+function drawFlowers() {
+  for (let f of flowers) {
+    // Physics sway
+    let wind =
+      sin(frameCount * 2 + f.offset) * f.bend;
+
+    let topX = f.x + wind;
+    let topY = f.baseY - f.stemH;
+
+    // Stem
+    stroke(40, 130, 60);
+    strokeWeight(2);
+
+    line(
+      f.x,
+      f.baseY,
+      topX,
+      topY
+    );
+
+    // Flower petals
+    noStroke();
+
+    fill(255, 150, 190);
+
+    circle(topX - 4, topY, f.size);
+    circle(topX + 4, topY, f.size);
+    circle(topX, topY - 4, f.size);
+    circle(topX, topY + 4, f.size);
+
+    // Center
+    fill(255, 220, 80);
+
+    circle(topX, topY, f.size * 0.7);
+  }
+}
+
+function drawPath() {
+  fill(225, 195, 160);
+
+  beginShape();
+
+  vertex(width / 2 - 110, height);
+  vertex(width / 2 + 110, height);
+
+  vertex(width - 270, height - 140);
+  vertex(width - 340, height - 140);
+
+  endShape(CLOSE);
+}
+
+function drawClouds() {
+  let wind = map(mouseX, 0, width, -1, 1);
+
+  for (let c of clouds) {
+    push();
+
+    translate(c.x, c.y);
+
+    noStroke();
+
+    fill(255, 255, 255, 220);
+
+    ellipse(0, 0, c.size, c.size * 0.5);
+    ellipse(-40, 0, c.size * 0.7, c.size * 0.4);
+    ellipse(40, 0, c.size * 0.7, c.size * 0.4);
+
+    pop();
+
+    c.x += c.speed + wind * 0.2;
+
+    if (c.x > width + 200) c.x = -200;
+  }
+}
+
+function drawButterflies() {
+  for (let b of butterflies) {
+    let flyY =
+      b.y +
+      sin(frameCount * 3 + b.offset) * 15;
+
+    push();
+
+    translate(b.x, flyY);
+
+    let flap = sin(frameCount * 18) * 6;
+
+    noStroke();
+
+    fill(255, 140, 200);
+
+    ellipse(-5, 0, 10 + flap, 16);
+    ellipse(5, 0, 10 + flap, 16);
+
+    fill(40);
+
+    rect(-1, -7, 2, 14);
+
+    pop();
+
+    b.x += b.speed;
+
+    if (b.x > width + 20) b.x = -20;
+  }
+}
+
+function drawHouse() {
+  let hx = width - 400;
+  let hy = height - 250;
+
+  fill(230, 170, 110);
+
+  rect(hx, hy, 170, 120, 10);
+
+  fill(150, 70, 55);
+
+  triangle(
+    hx - 15,
+    hy,
+    hx + 85,
+    hy - 80,
+    hx + 185,
+    hy
+  );
+
+  fill(255, 240, 170);
+
+  rect(hx + 20, hy + 25, 35, 35, 5);
+  rect(hx + 115, hy + 25, 35, 35, 5);
+
+  fill(100, 55, 25);
+
+  rect(hx + 68, hy + 55, 35, 65, 8);
+}
+
+function drawChildren() {
+  let ground = height - 150;
+
+  drawChild(
+    170,
+    ground,
+    color(255, 120, 120),
+    0
+  );
+
+  drawChild(
+    250,
+    ground + 5,
+    color(120, 170, 255),
+    120
+  );
+
+  drawChild(
+    330,
+    ground,
+    color(255, 220, 100),
+    240
+  );
+
+  fill(0, 0, 0, 30);
+
+  ellipse(170, ground + 45, 45, 10);
+  ellipse(250, ground + 50, 45, 10);
+  ellipse(330, ground + 45, 45, 10);
+}
+
+function drawChild(x, groundY, shirtColor, offset) {
+  push();
+
+  let move =
+    sin(frameCount * 4 + offset) * 4;
+
+  let sway =
+    sin(frameCount * 2 + offset) * 3;
+
+  translate(x + sway, groundY + move);
+
+  fill(255, 220, 190);
+
+  noStroke();
+
+  circle(0, -65, 30);
+
+  fill(70);
+
+  arc(0, -68, 30, 22, 180, 360);
+
+  fill(0);
+
+  let blink =
+    abs(sin(frameCount * 2 + offset)) < 0.1;
+
+  if (blink) {
+    stroke(0);
+
+    line(-7, -67, -3, -67);
+    line(3, -67, 7, -67);
+
+    noStroke();
+  } else {
+    circle(-5, -67, 2);
+    circle(5, -67, 2);
+  }
+
+  noFill();
+
+  stroke(0);
+
+  arc(0, -60, 10, 6, 0, 180);
+
+  noStroke();
+
+  fill(shirtColor);
+
+  rect(-12, -50, 24, 35, 8);
+
+  stroke(0);
+
+  strokeWeight(2.5);
+
+  let armMove =
+    sin(frameCount * 5 + offset) * 10;
+
+  line(-12, -38, -22, -20 - armMove);
+  line(12, -38, 22, -20 + armMove);
+
+  line(-6, -15, -8, 18);
+  line(6, -15, 8, 18);
+
+  let legMove =
+    sin(frameCount * 5 + offset) * 6;
+
+  line(-8, 18, -12 - legMove, 42);
+  line(8, 18, 12 + legMove, 42);
+
+  pop();
+}
+
+function drawBirds() {
+  drawBird(540, 170, 1);
+  drawBird(610, 140, 0.8);
+  drawBird(680, 180, 0.6);
+}
+
+function drawBird(x, y, scaleFactor) {
+  push();
+
+  translate(x, y);
+
+  scale(scaleFactor);
+
+  stroke(40);
+
+  strokeWeight(2);
+
+  noFill();
+
+  arc(-10, 0, 20, 10, 180, 360);
+  arc(10, 0, 20, 10, 180, 360);
+
+  pop();
+}
+
+function drawTitle() {
+  textAlign(CENTER);
+
+  fill(255);
+
+  textStyle(BOLD);
+
+  textSize(42);
+
+  text(
+    "JOYFUL MORNING PLAYGROUND",
+    width / 2,
+    65
+  );
+
+  textStyle(NORMAL);
+
+  textSize(20);
+
+  fill(60, 60, 90);
+
+  text(
+    "A calm morning scene with nature and friendship",
+    width / 2,
+    100
+  );
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
