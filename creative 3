@@ -1,1 +1,206 @@
+// Rain = Melancholy (Bus Stop Version)
+// p5.js
 
+let rain = [];
+let clouds = [];
+let ripples = [];
+let fog = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  
+  // Rain setup
+  for (let i = 0; i < 400; i++) {
+    rain.push({
+      x: random(width),
+      y: random(-height, height),
+      speed: random(12, 18),
+      len: random(10, 25)
+    });
+  }
+
+  // Fog setup
+  for (let i = 0; i < 40; i++) {
+    fog.push({
+      x: random(width),
+      y: random(height - 150, height),
+      size: random(100, 250),
+      speed: random(0.1, 0.3)
+    });
+  }
+}
+
+function draw() {
+  drawSky();
+  drawMountains();
+  drawGround();
+  drawRoad();
+  drawRain();
+  drawRipples();
+  
+  // Bus Stop aur Ladka
+  drawBusStop(width / 2 - 100, height - 140);
+  drawHuman(width / 2 - 50, height - 140);
+  
+  drawFog();
+  drawVignette();
+}
+
+function drawSky() {
+  for (let y = 0; y < height; y += 5) {
+    let inter = map(y, 0, height, 0, 1);
+    let c = lerpColor(color(10, 10, 25), color(30, 35, 50), inter);
+    stroke(c);
+    line(0, y, width, y);
+  }
+}
+
+function drawBusStop(x, y) {
+  push();
+  translate(x, y);
+  
+  // Back Wall (Glass effect)
+  noStroke();
+  fill(40, 45, 60, 150);
+  rect(0, -120, 180, 120);
+  
+  // Bench
+  fill(20);
+  rect(20, -40, 100, 10);
+  
+  // Pillars
+  stroke(10);
+  strokeWeight(5);
+  line(0, 0, 0, -130);
+  line(180, 0, 180, -130);
+  
+  // Roof
+  noStroke();
+  fill(15);
+  quad(-20, -130, 200, -130, 180, -150, 0, -150);
+  
+  // Bus Stop Sign
+  stroke(10);
+  line(220, 0, 220, -100);
+  fill(30);
+  rect(205, -100, 30, 40);
+  pop();
+}
+
+function drawHuman(x, y) {
+  push();
+  translate(x, y);
+  
+  // Slight breathing movement
+  let breathe = sin(frameCount * 2) * 1;
+  
+  // Shadow
+  noStroke();
+  fill(0, 0, 0, 80);
+  ellipse(0, 0, 40, 10);
+  
+  // Body Silhouette
+  fill(15);
+  noStroke();
+  ellipse(0, -85 + breathe, 18, 20); // Head
+  rectMode(CENTER);
+  rect(0, -50 + breathe, 25, 50, 5); // Torso
+  
+  // Legs
+  stroke(15);
+  strokeWeight(5);
+  line(-6, -25, -6, 0);
+  line(6, -25, 6, 0);
+  
+  // Closed Umbrella (Side mein pakdi hui)
+  stroke(10);
+  strokeWeight(3);
+  line(15, -45 + breathe, 15, -5); 
+  pop();
+}
+
+function drawGround() {
+  noStroke();
+  fill(12, 14, 18);
+  rect(0, height - 140, width, 140);
+}
+
+function drawRoad() {
+  fill(20);
+  noStroke();
+  rect(0, height - 80, width, 60);
+  
+  // Reflections on wet road
+  for(let i = 0; i < width; i += 100) {
+    fill(255, 255, 255, 5);
+    ellipse(i, height - 50, 80, 20);
+  }
+}
+
+function drawRain() {
+  stroke(150, 160, 200, 100);
+  strokeWeight(1);
+  for (let r of rain) {
+    // Rain should not fall inside the bus stop
+    let inStopX = (r.x > width/2 - 120 && r.x < width/2 + 100);
+    let inStopY = (r.y > height - 280);
+    
+    if (!(inStopX && inStopY)) {
+      line(r.x, r.y, r.x - 1, r.y + r.len);
+    }
+    
+    r.y += r.speed;
+    if (r.y > height) {
+      r.y = random(-200, 0);
+      r.x = random(width);
+    }
+  }
+}
+
+function drawRipples() {
+  noFill();
+  for (let i = ripples.length - 1; i >= 0; i--) {
+    let p = ripples[i];
+    stroke(255, 255, 255, p.alpha);
+    ellipse(p.x, p.y, p.size * 3, p.size);
+    p.size += 0.5;
+    p.alpha -= 2;
+    if (p.alpha <= 0) ripples.splice(i, 1);
+  }
+}
+
+function drawMountains() {
+  fill(20, 22, 30);
+  noStroke();
+  beginShape();
+  vertex(0, height);
+  vertex(0, height - 250);
+  vertex(width * 0.3, height - 400);
+  vertex(width * 0.6, height - 280);
+  vertex(width, height - 350);
+  vertex(width, height);
+  endShape(CLOSE);
+}
+
+function drawFog() {
+  noStroke();
+  for (let f of fog) {
+    fill(150, 160, 180, 5);
+    ellipse(f.x, f.y, f.size, 40);
+    f.x += f.speed;
+    if (f.x > width + 100) f.x = -100;
+  }
+}
+
+function drawVignette() {
+  noFill();
+  for (let r = 0; r < 150; r += 10) {
+    stroke(0, 0, 0, map(r, 0, 150, 180, 0));
+    strokeWeight(100);
+    rect(0, 0, width, height);
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
